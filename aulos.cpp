@@ -9,52 +9,50 @@ DaisyPatch patch;
 
 // --------------------- Oscillators / Filter ---------------------
 Oscillator main_oscillator, osc_sub1, osc_sub2, osc_sub3, osc_sub4;
-Svf        formant_filter;
+Svf formant_filter;
 
 // --------------------- Scale Data ---------------------
 static constexpr int NUM_SCALES = 16;
-const char* scale_names[NUM_SCALES] = {
-    "chromatic", "major",    "minor",  "pentatonic", "blues", 
-    "whole",     "dorian",   "phrygian","lydian",     "mixolydian",
-    "locrian",   "harm. min","mel. min","arabic",     "gypsy",
-    "japanese"
-};
+const char *scale_names[NUM_SCALES] = {
+    "chromatic", "major", "minor", "pentatonic", "blues",
+    "whole", "dorian", "phrygian", "lydian", "mixolydian",
+    "locrian", "harm. min", "mel. min", "arabic", "gypsy",
+    "japanese"};
 
 const int scales[NUM_SCALES][7] = {
-    {0, 1, 2, 3, 4, 5, 6},   
-    {0, 2, 4, 5, 7, 9, 11},  
-    {0, 2, 3, 5, 7, 8, 10},  
-    {0, 2, 4, 7, 9, -1, -1}, 
-    {0, 3, 5, 6, 7, 10, -1}, 
-    {0, 2, 4, 6, 8, 10, -1}, 
-    {0, 2, 3, 5, 7, 9, 10},  
-    {0, 1, 3, 5, 7, 8, 10},  
-    {0, 2, 4, 6, 7, 9, 11},  
-    {0, 2, 4, 5, 7, 9, 10},  
-    {0, 1, 3, 5, 6, 8, 10},  
-    {0, 2, 3, 5, 7, 8, 11},  
-    {0, 2, 3, 5, 7, 9, 11},  
-    {0, 1, 4, 5, 7, 8, 11},  
-    {0, 1, 4, 5, 7, 8, 10},  
-    {0, 1, 5, 7, 8, 10, -1}, 
+    {0, 1, 2, 3, 4, 5, 6},
+    {0, 2, 4, 5, 7, 9, 11},
+    {0, 2, 3, 5, 7, 8, 10},
+    {0, 2, 4, 7, 9, -1, -1},
+    {0, 3, 5, 6, 7, 10, -1},
+    {0, 2, 4, 6, 8, 10, -1},
+    {0, 2, 3, 5, 7, 9, 10},
+    {0, 1, 3, 5, 7, 8, 10},
+    {0, 2, 4, 6, 7, 9, 11},
+    {0, 2, 4, 5, 7, 9, 10},
+    {0, 1, 3, 5, 6, 8, 10},
+    {0, 2, 3, 5, 7, 8, 11},
+    {0, 2, 3, 5, 7, 9, 11},
+    {0, 1, 4, 5, 7, 8, 11},
+    {0, 1, 4, 5, 7, 8, 10},
+    {0, 1, 5, 7, 8, 10, -1},
 };
 
 int selected_scale = 0;
 
 // --------------------- Wave Data ---------------------
 static constexpr int NUM_WAVES = 5;
-const char* wave_names[NUM_WAVES] = {
-    "sine", "triangle", "saw", "ramp", "square"
-};
+const char *wave_names[NUM_WAVES] = {
+    "sine", "triangle", "saw", "ramp", "square"};
 
 // --------------------- Pitch / Filter / Etc. ---------------------
-int   root_note   = 60; // C3
-float pitch_main  = 0.f;
+int root_note = 60; // C3
+float pitch_main = 0.f;
 float pitch_sub[4];
 
-float volume      = 0.8f;
+float volume = 0.8f;
 float filter_freq = 1000.f;
-int   waveform    = 0;
+int waveform = 0;
 
 // --------------------- Encoder Mode ---------------------
 enum class EncoderMode
@@ -74,13 +72,13 @@ static size_t scope_idx = 0;
 // -------------------------------------------------
 int QuantizeToScale(int note, int scale_index)
 {
-    int octave         = note / 12;
+    int octave = note / 12;
     int note_in_octave = note % 12;
-    const int* scale   = scales[scale_index];
+    const int *scale = scales[scale_index];
 
-    for(int i = 0; i < 7 && scale[i] != -1; i++)
+    for (int i = 0; i < 7 && scale[i] != -1; i++)
     {
-        if(note_in_octave <= scale[i])
+        if (note_in_octave <= scale[i])
             return octave * 12 + scale[i];
     }
     // Wrap to next octave
@@ -92,10 +90,10 @@ int QuantizeToScale(int note, int scale_index)
 // -------------------------------------------------
 void DrawScope()
 {
-    int   center_y = 42;
-    float amplitude = 20.f;  // scale [-1..+1] => 20 px
+    int center_y = 42;
+    float amplitude = 20.f; // scale [-1..+1] => 20 px
 
-    for(size_t x = 0; x < (SCOPE_BUF_SIZE - 1); x++)
+    for (size_t x = 0; x < (SCOPE_BUF_SIZE - 1); x++)
     {
         float s1 = scope_buffer[x];
         float s2 = scope_buffer[x + 1];
@@ -105,10 +103,14 @@ void DrawScope()
         int y2 = static_cast<int>(center_y - s2 * amplitude);
 
         // clamp vertically to [20..63]
-        if(y1 < 20) y1 = 20;
-        if(y1 > 63) y1 = 63;
-        if(y2 < 20) y2 = 20;
-        if(y2 > 63) y2 = 63;
+        if (y1 < 20)
+            y1 = 20;
+        if (y1 > 63)
+            y1 = 63;
+        if (y2 < 20)
+            y2 = 20;
+        if (y2 > 63)
+            y2 = 63;
 
         // Draw line from (x, y1) to (x+1, y2)
         patch.display.DrawLine(x, y1, x + 1, y2, true);
@@ -124,7 +126,7 @@ void UpdateOled()
 
     // -- Line 1: Show WAVEFORM, with '*' if that's the current mode
     patch.display.SetCursor(0, 0);
-    if(encoder_mode == EncoderMode::WAVEFORM)
+    if (encoder_mode == EncoderMode::WAVEFORM)
         patch.display.WriteString("*waveform: ", Font_6x8, true);
     else
         patch.display.WriteString(" waveform: ", Font_6x8, true);
@@ -132,7 +134,7 @@ void UpdateOled()
 
     // -- Line 2: Show SCALE, with '*' if that's the current mode
     patch.display.SetCursor(0, 10);
-    if(encoder_mode == EncoderMode::SCALE)
+    if (encoder_mode == EncoderMode::SCALE)
         patch.display.WriteString("*scale: ", Font_6x8, true);
     else
         patch.display.WriteString(" scale: ", Font_6x8, true);
@@ -171,10 +173,10 @@ void UpdateControls()
 
     // Encoder button toggles mode
     static bool old_pressed = false;
-    bool curr_pressed       = patch.encoder.Pressed();
-    if(curr_pressed && !old_pressed)
+    bool curr_pressed = patch.encoder.Pressed();
+    if (curr_pressed && !old_pressed)
     {
-        if(encoder_mode == EncoderMode::WAVEFORM)
+        if (encoder_mode == EncoderMode::WAVEFORM)
             encoder_mode = EncoderMode::SCALE;
         else
             encoder_mode = EncoderMode::WAVEFORM;
@@ -183,9 +185,9 @@ void UpdateControls()
 
     // Encoder turn
     int increment = patch.encoder.Increment();
-    if(increment != 0)
+    if (increment != 0)
     {
-        if(encoder_mode == EncoderMode::WAVEFORM)
+        if (encoder_mode == EncoderMode::WAVEFORM)
         {
             waveform += increment;
             waveform = (waveform + NUM_WAVES) % NUM_WAVES;
@@ -201,9 +203,9 @@ void UpdateControls()
 // -------------------------------------------------
 // Audio callback
 // -------------------------------------------------
-static void AudioCallback(AudioHandle::InputBuffer  in,
+static void AudioCallback(AudioHandle::InputBuffer in,
                           AudioHandle::OutputBuffer out,
-                          size_t                    size)
+                          size_t size)
 {
     // Update controls once per block
     UpdateControls();
@@ -231,7 +233,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
     osc_sub3.SetWaveform((uint8_t)waveform);
     osc_sub4.SetWaveform((uint8_t)waveform);
 
-    for(size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         float main_out = main_oscillator.Process();
         float sub1_out = osc_sub1.Process();
@@ -240,14 +242,10 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         float sub4_out = osc_sub4.Process();
 
         // Left channel: main_osc
-        float left  = main_out * volume;
+        float left = main_out * volume;
 
         // Right channel: subharmonics
-        float right = (0.4f * sub1_out
-                     + 0.3f * sub2_out
-                     + 0.2f * sub3_out
-                     + 0.1f * sub4_out)
-                     * volume;
+        float right = (0.4f * sub1_out + 0.3f * sub2_out + 0.2f * sub3_out + 0.1f * sub4_out) * volume;
 
         // Filter
         float mix_sum = left + right;
@@ -255,7 +253,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         float filtered_lp = formant_filter.Low();
 
         // final L/R
-        left  = filtered_lp * 0.5f;
+        left = filtered_lp * 0.5f;
         right = filtered_lp * 0.5f;
 
         // Write final audio
@@ -265,7 +263,7 @@ static void AudioCallback(AudioHandle::InputBuffer  in,
         out[3][i] = 0.f;
 
         // --- Store LEFT channel in scope_buffer for time-domain display ---
-        scope_buffer[scope_idx] = left;  // in [-1..+1] range
+        scope_buffer[scope_idx] = left; // in [-1..+1] range
         scope_idx = (scope_idx + 1) % SCOPE_BUF_SIZE;
     }
 }
@@ -280,7 +278,7 @@ int main(void)
 
     // Init oscillators
     waveform = 0;
-    
+
     main_oscillator.Init(samplerate);
     osc_sub1.Init(samplerate);
     osc_sub2.Init(samplerate);
@@ -302,7 +300,7 @@ int main(void)
     patch.StartAdc();
     patch.StartAudio(AudioCallback);
 
-    while(1)
+    while (1)
     {
         UpdateOled();
     }
