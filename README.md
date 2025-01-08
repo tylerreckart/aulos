@@ -1,4 +1,7 @@
-This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive ribbon controller and subharmonic character.
+# Aulos
+<img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Banquet_Euaion_Louvre_G467_n2_cropped.jpg" alt="Image depicting an Aulos (double reedpipes or double clarinets), from Attic red-figure cup, Banquet Euaion Louvre" width="320px"/>
+
+This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive control and subharmonic character. The project is named _Aulos_ after the ancient Greek double-piped wind instrument, celebrated for its rich, expressive tones and cultural significance in early music. This name reflects the project's aim to recreate an instrument with similar expressive capabilities.
 
 ## Overview
 
@@ -8,7 +11,7 @@ The firmware, written in C++, is designed for the DaisyDSP microcontroller and A
 
 ### Signal Generation
 
-The trautonium.cpp source implements core audio signal generation using:
+The aulos.cpp source implements core audio signal generation using:
 
 - **Subharmonic Oscillators-** Configurable via parameterized subharmonic ratios.
 
@@ -38,7 +41,7 @@ Control Voltage (CV): Accepts CV signals to manipulate the following parameters:
 
 Flash the firmware binary to a compatible device.
 
-Alternatively, use an Arduino IDE to compile and upload trautonium.cpp.
+Alternatively, use an Arduino IDE to compile and upload aulos.cpp.
 
 ## Contributing
 
