@@ -3,6 +3,12 @@
 
 This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive control and subharmonic character. The project is named _Aulos_ after the ancient Greek double-piped wind instrument, celebrated for its rich, expressive tones and cultural significance in early music. This name reflects the project's aim to recreate an instrument with similar expressive capabilities.
 
+## Demo
+
+Please click the thumbnail below to be directed to the video demonstration of the current firmware: 
+
+[![aulos video demonstration](http://i3.ytimg.com/vi/ZTuEySEleiw/hqdefault.jpg)](https://www.youtube.com/watch?v=ZTuEySEleiw?si=39wRLsX7yXqIgUet)
+
 ## Overview
 
 The firmware, written in C++, is designed for the DaisyDSP microcontroller and Arduino platforms. The .bin file is a precompiled firmware binary ready for flashing onto a supported device.
