@@ -1,58 +1,93 @@
 # Aulos
 <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Banquet_Euaion_Louvre_G467_n2_cropped.jpg" alt="Image depicting an Aulos (double reedpipes or double clarinets), from Attic red-figure cup, Banquet Euaion Louvre" width="320px"/>
 
-This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive control and subharmonic character. The project is named _Aulos_ after the ancient Greek double-piped wind instrument, celebrated for its rich, expressive tones and cultural significance in early music. This name reflects the project's aim to recreate an instrument with similar expressive capabilities.
-
 ## Demo
 
 Please click the thumbnail below to be directed to the video demonstration of the current firmware: 
 
-[![aulos video demonstration](http://i3.ytimg.com/vi/ZTuEySEleiw/hqdefault.jpg)](https://www.youtube.com/watch?v=ZTuEySEleiw?si=39wRLsX7yXqIgUet)
+[![aulos video demonstration](http://i3.ytimg.com/vi/ZTuEySEleiw/hqdefault.jpg)](https://www.youtube.com/watch?v=ZTuEySEleiw?si=39wRLsX7yXqIgUet)  
 
 ## Overview
 
-The firmware, written in C++, is designed for the DaisyDSP microcontroller and Arduino platforms. The .bin file is a precompiled firmware binary ready for flashing onto a supported device.
+This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive control and subharmonic character. The project is named _Aulos_ after the ancient Greek double-piped wind instrument, celebrated for its rich, expressive tones and cultural significance in early music. This name reflects the project's aim to recreate an instrument with similar expressive capabilities. The firmware, written in C++, is designed for the DaisyDSP microcontroller and Arduino platforms. The .bin file is a precompiled firmware binary ready for flashing onto a supported device.
 
-## Core Functions
+## Features
 
-### Signal Generation
+- **Two independent oscillators** (Osc1 and Osc2), each with **four subharmonic voices**.  
+- **Multiple waveforms** (Sine, Triangle, Saw, Ramp, Square) selectable independently for each oscillator.  
+- **Scale-based quantization** with selectable scales (Major, Minor, Pentatonic, etc.).  
+- **Configurable root note** for each oscillator via dedicated knobs.  
+- **Volume control** for each oscillator and its subharmonics.  
 
-The aulos.cpp source implements core audio signal generation using:
+## Dependencies
 
-- **Subharmonic Oscillators-** Configurable via parameterized subharmonic ratios.
+- **[libDaisy](https://github.com/electro-smith/libDaisy)** – Daisy hardware abstraction library.  
+- **[DaisySP](https://github.com/electro-smith/DaisySP)** – DSP library for the Daisy platform.  
+- **[arm-none-eabi-gcc](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm)** (or equivalent) for compiling.  
 
-- **Multiple Waveforms-** Multiple selectable waveforms for tonal variation.
+Depending on your workflow, you can either use the **Daisy toolchain** (CMake-based) or a **PlatformIO** environment configured for Daisy development.
 
-- **Formant Resonant Filter**
+## Building and Flashing
 
-### Input Handling
+1. **Clone the repository** (or download the source):
+```bash
+   git clone https://github.com/yourusername/aulos.git
+   cd aulos
+```
+2. Ensure the Daisy toolchain is installed and properly set up:
+    
+    a. Install DaisyDuino/Make/CMake environment.
+    
+    b. Build the firmware:
+    
+    c. If using the Make-based environment:
 
-Control Voltage (CV): Accepts CV signals to manipulate the following parameters:
+```bash
+make
+```
 
-- **Fundamental Frequency __(quantized to one of 16 selected scales)__**
+    d. Or, if using CMake:
 
-- **Filter Frequency**
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
 
-- **Filter Resonance**
+3. Flash the binary to the Daisy Patch:
 
-- **Output Volume**
+    a. Connect your Daisy Patch via USB in DFU mode.
+    b. Run:
 
-### Output Processing
+```bash
+make program-dfu
+```
 
-- **Audio Output-** Generates line-level audio through onboard DAC.
+    c. or use the relevant CMake/PlatformIO target.
+    d. After flashing completes, reboot the Daisy Patch. Aulos will automatically run.
 
-- **Polyphony-** Supports monophonic or limited polyphonic modes.
+## Usage
 
-### Installation
+Once installed, the Aulos firmware boots immediately into audio generation mode. The subharmonic oscillators are layered over two main oscillators. Control is offered via the four knobs and the rotary encoder.
 
-Flash the firmware binary to a compatible device.
+## Controls
+- **Knob 1**: Root note (0–127 MIDI) for Oscillator 1.
+- **Knob 2**: Volume for Oscillator 1.
+- **Knob 3**: Root note (0–127 MIDI) for Oscillator 2.
+- **Knob 4**: Volume for Oscillator 2.
 
-Alternatively, use an Arduino IDE to compile and upload aulos.cpp.
+Rotary Encoder Button: Cycles through encoder modes:
 
-## Contributing
+- **WAVEFORM_1**: Change waveform for Oscillator 1.
+- **WAVEFORM_2**: Change waveform for Oscillator 2.
+- **SCALE**: Change the active scale.
+- **QUANTIZE**: Toggle quantization on/off.
 
-Contributions to enhance functionality or improve compatibility are welcome. Submit issues or pull requests to collaborate.
+Rotary Encoder Rotation:
+- In **WAVEFORM_1** or **WAVEFORM_2** mode, rotating changes the waveform index.
+- In **SCALE** mode, rotating cycles through available scales.
+- In **QUANTIZE** mode, any rotation toggles quantization.
 
 ## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. You are free to use, modify, and distribute this software in accordance with the terms of the MIT License. See the LICENSE file for more details.
