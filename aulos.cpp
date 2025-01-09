@@ -7,17 +7,24 @@ using namespace daisysp;
 
 DaisyPatch patch;
 
-// --------------------- Oscillators / Filter ---------------------
+// --------------------- Oscillators ---------------------
 Oscillator main_oscillator, osc_sub1, osc_sub2, osc_sub3, osc_sub4;
-Svf formant_filter;
+Oscillator bass_oscillator, bosc_sub1, bosc_sub2, bosc_sub3, bosc_sub4;
 
 // --------------------- Scale Data ---------------------
-static constexpr int NUM_SCALES = 16;
+static constexpr int NUM_SCALES = 10;
 const char *scale_names[NUM_SCALES] = {
-    "chromatic", "major", "minor", "pentatonic", "blues",
-    "whole", "dorian", "phrygian", "lydian", "mixolydian",
-    "locrian", "harm. min", "mel. min", "arabic", "gypsy",
-    "japanese"};
+    "chromatic",
+    "major",
+    "minor",
+    "pentatonic",
+    "blues",
+    "phrygian",
+    "lydian",
+    "mixolydian",
+    "arabic",
+    "japanese",
+};
 
 const int scales[NUM_SCALES][7] = {
     {0, 1, 2, 3, 4, 5, 6},
@@ -25,16 +32,10 @@ const int scales[NUM_SCALES][7] = {
     {0, 2, 3, 5, 7, 8, 10},
     {0, 2, 4, 7, 9, -1, -1},
     {0, 3, 5, 6, 7, 10, -1},
-    {0, 2, 4, 6, 8, 10, -1},
-    {0, 2, 3, 5, 7, 9, 10},
     {0, 1, 3, 5, 7, 8, 10},
     {0, 2, 4, 6, 7, 9, 11},
-    {0, 2, 4, 5, 7, 9, 10},
-    {0, 1, 3, 5, 6, 8, 10},
-    {0, 2, 3, 5, 7, 8, 11},
     {0, 2, 3, 5, 7, 9, 11},
     {0, 1, 4, 5, 7, 8, 11},
-    {0, 1, 4, 5, 7, 8, 10},
     {0, 1, 5, 7, 8, 10, -1},
 };
 
@@ -45,14 +46,19 @@ static constexpr int NUM_WAVES = 5;
 const char *wave_names[NUM_WAVES] = {
     "sine", "triangle", "saw", "ramp", "square"};
 
-// --------------------- Pitch / Filter / Etc. ---------------------
+int waveform = 0;
+
+// --------------------- Pitch Control ---------------------
 int root_note = 60; // C3
 float pitch_main = 0.f;
 float pitch_sub[4];
 
-float volume = 0.8f;
-float filter_freq = 1000.f;
-int waveform = 0;
+int bass_root_note = 24;
+float pitch_bass = 0.f;
+float pitch_bsub[4];
+
+float main_volume = 0.8f;
+float bass_volume = 0.8f;
 
 // --------------------- Encoder Mode ---------------------
 enum class EncoderMode
@@ -60,12 +66,8 @@ enum class EncoderMode
     WAVEFORM,
     SCALE
 };
-static EncoderMode encoder_mode = EncoderMode::WAVEFORM;
 
-// --------------------- Single-Channel Scope Buffer ---------------------
-static constexpr size_t SCOPE_BUF_SIZE = 128;
-static float scope_buffer[SCOPE_BUF_SIZE];
-static size_t scope_idx = 0;
+static EncoderMode encoder_mode = EncoderMode::WAVEFORM;
 
 // -------------------------------------------------
 // Quantize a MIDI note to the selected scale
@@ -86,62 +88,27 @@ int QuantizeToScale(int note, int scale_index)
 }
 
 // -------------------------------------------------
-// Draw a single-channel scope (time-domain) in rows 20..63
-// -------------------------------------------------
-void DrawScope()
-{
-    int center_y = 42;
-    float amplitude = 20.f; // scale [-1..+1] => 20 px
-
-    for (size_t x = 0; x < (SCOPE_BUF_SIZE - 1); x++)
-    {
-        float s1 = scope_buffer[x];
-        float s2 = scope_buffer[x + 1];
-
-        // Convert from [-1..+1] => screen coords
-        int y1 = static_cast<int>(center_y - s1 * amplitude);
-        int y2 = static_cast<int>(center_y - s2 * amplitude);
-
-        // clamp vertically to [20..63]
-        if (y1 < 20)
-            y1 = 20;
-        if (y1 > 63)
-            y1 = 63;
-        if (y2 < 20)
-            y2 = 20;
-        if (y2 > 63)
-            y2 = 63;
-
-        // Draw line from (x, y1) to (x+1, y2)
-        patch.display.DrawLine(x, y1, x + 1, y2, true);
-    }
-}
-
-// -------------------------------------------------
-// Update the display: two lines + single-channel scope
+// Update the display
 // -------------------------------------------------
 void UpdateOled()
 {
     patch.display.Fill(false);
-
-    // -- Line 1: Show WAVEFORM, with '*' if that's the current mode
     patch.display.SetCursor(0, 0);
+    patch.display.WriteString("~~~~~~~~~~ αὐλός ~~~~~~~~~~", Font_6x8, true);
+
+    patch.display.SetCursor(0, 10);
     if (encoder_mode == EncoderMode::WAVEFORM)
-        patch.display.WriteString("*waveform: ", Font_6x8, true);
+        patch.display.WriteString("* waveform: ", Font_6x8, true);
     else
-        patch.display.WriteString(" waveform: ", Font_6x8, true);
+        patch.display.WriteString("  waveform: ", Font_6x8, true);
     patch.display.WriteString(wave_names[waveform], Font_6x8, true);
 
-    // -- Line 2: Show SCALE, with '*' if that's the current mode
-    patch.display.SetCursor(0, 10);
+    patch.display.SetCursor(0, 20);
     if (encoder_mode == EncoderMode::SCALE)
-        patch.display.WriteString("*scale: ", Font_6x8, true);
+        patch.display.WriteString("* scale: ", Font_6x8, true);
     else
-        patch.display.WriteString(" scale: ", Font_6x8, true);
+        patch.display.WriteString("  scale: ", Font_6x8, true);
     patch.display.WriteString(scale_names[selected_scale], Font_6x8, true);
-
-    // Draw the single-channel scope below row=20
-    DrawScope();
 
     patch.display.Update();
 }
@@ -159,19 +126,12 @@ void UpdateControls()
     float knob3 = patch.GetKnobValue(DaisyPatch::CTRL_3);
     float knob4 = patch.GetKnobValue(DaisyPatch::CTRL_4);
 
-    // root_note for pitch
     root_note = static_cast<int>(knob1 * 127.f);
+    bass_root_note = static_cast<int>(knob3 * 127.f);
 
-    // Filter freq and resonance
-    filter_freq = 200.f + (knob2 * 300.f);
-    formant_filter.SetFreq(filter_freq);
-    float res_val = knob3 * 0.95f; // limit to <1.0
-    formant_filter.SetRes(res_val);
+    main_volume = knob2;
+    bass_volume = knob4;
 
-    // Volume
-    volume = knob4;
-
-    // Encoder button toggles mode
     static bool old_pressed = false;
     bool curr_pressed = patch.encoder.Pressed();
     if (curr_pressed && !old_pressed)
@@ -201,27 +161,27 @@ void UpdateControls()
 }
 
 // -------------------------------------------------
-// Audio callback
+// Calculate subharmonics for a given base frequency
 // -------------------------------------------------
-static void AudioCallback(AudioHandle::InputBuffer in,
-                          AudioHandle::OutputBuffer out,
-                          size_t size)
+void CalculateSubharmonics(float base_freq, float *subharmonics, int count)
 {
-    // Update controls once per block
-    UpdateControls();
+    for (int i = 0; i < count; ++i)
+    {
+        subharmonics[i] = base_freq / (i + 2);
+    }
+}
 
-    // Quantize root note to scale
-    int q_note = QuantizeToScale(root_note, selected_scale);
-    pitch_main = mtof(q_note);
+// --------------------------------------------------------------
+// Process frequency and waveform changes for the main oscillator
+// --------------------------------------------------------------
+void UpdateOsc(float pitch, int waveform)
+{
+    pitch_sub[0] = pitch / 2.f;
+    pitch_sub[1] = pitch / 3.f;
+    pitch_sub[2] = pitch / 4.f;
+    pitch_sub[3] = pitch / 5.f;
 
-    // Subharmonics
-    pitch_sub[0] = pitch_main / 2.f;
-    pitch_sub[1] = pitch_main / 3.f;
-    pitch_sub[2] = pitch_main / 4.f;
-    pitch_sub[3] = pitch_main / 5.f;
-
-    // Set oscillator freq/wave
-    main_oscillator.SetFreq(pitch_main);
+    main_oscillator.SetFreq(pitch);
     osc_sub1.SetFreq(pitch_sub[0]);
     osc_sub2.SetFreq(pitch_sub[1]);
     osc_sub3.SetFreq(pitch_sub[2]);
@@ -232,40 +192,97 @@ static void AudioCallback(AudioHandle::InputBuffer in,
     osc_sub2.SetWaveform((uint8_t)waveform);
     osc_sub3.SetWaveform((uint8_t)waveform);
     osc_sub4.SetWaveform((uint8_t)waveform);
+}
+
+// --------------------------------------------------------------
+// Process frequency and waveform changes for the bass oscillator
+// --------------------------------------------------------------
+void UpdateBassOsc(float pitch, int waveform)
+{
+    pitch_bsub[0] = pitch / 2.f;
+    pitch_bsub[1] = pitch / 3.f;
+    pitch_bsub[2] = pitch / 4.f;
+    pitch_bsub[3] = pitch / 5.f;
+
+    bass_oscillator.SetFreq(pitch);
+    bosc_sub1.SetFreq(pitch_bsub[0]);
+    bosc_sub2.SetFreq(pitch_bsub[1]);
+    bosc_sub3.SetFreq(pitch_bsub[2]);
+    bosc_sub4.SetFreq(pitch_bsub[3]);
+
+    bass_oscillator.SetWaveform((uint8_t)waveform);
+    bosc_sub1.SetWaveform((uint8_t)waveform);
+    bosc_sub2.SetWaveform((uint8_t)waveform);
+    bosc_sub3.SetWaveform((uint8_t)waveform);
+    bosc_sub4.SetWaveform((uint8_t)waveform);
+}
+
+// -------------------------------------------------
+// Audio callback
+// -------------------------------------------------
+static void AudioCallback(AudioHandle::InputBuffer in,
+                          AudioHandle::OutputBuffer out,
+                          size_t size)
+{
+    // Update controls once per block
+    UpdateControls();
+
+    int main_q_note = QuantizeToScale(root_note, selected_scale);
+    pitch_main = mtof(main_q_note);
+    UpdateOsc(pitch_main, waveform);
+
+    int bass_q_note = QuantizeToScale(bass_root_note, selected_scale);
+    pitch_bass = mtof(bass_q_note);
+    UpdateBassOsc(pitch_bass, waveform);
 
     for (size_t i = 0; i < size; i++)
     {
-        float main_out = main_oscillator.Process();
-        float sub1_out = osc_sub1.Process();
-        float sub2_out = osc_sub2.Process();
-        float sub3_out = osc_sub3.Process();
-        float sub4_out = osc_sub4.Process();
+        float channel1_main_out = main_oscillator.Process();
+        float channel1_sub1_out = osc_sub1.Process();
+        float channel1_sub2_out = osc_sub2.Process();
+        float channel1_sub3_out = osc_sub3.Process();
+        float channel1_sub4_out = osc_sub4.Process();
 
         // Left channel: main_osc
-        float left = main_out * volume;
-
+        float channel1_left = channel1_main_out * main_volume;
         // Right channel: subharmonics
-        float right = (0.4f * sub1_out + 0.3f * sub2_out + 0.2f * sub3_out + 0.1f * sub4_out) * volume;
+        float channel1_right = (0.4f * channel1_sub1_out + 0.3f * channel1_sub2_out + 0.2f * channel1_sub3_out + 0.1f * channel1_sub4_out) * main_volume;
 
-        // Filter
-        float mix_sum = left + right;
-        formant_filter.Process(mix_sum);
-        float filtered_lp = formant_filter.Low();
+        float channel2_main_out = bass_oscillator.Process();
+        float channel2_sub1_out = bosc_sub1.Process();
+        float channel2_sub2_out = bosc_sub2.Process();
+        float channel2_sub3_out = bosc_sub3.Process();
+        float channel2_sub4_out = bosc_sub4.Process();
 
-        // final L/R
-        left = filtered_lp * 0.5f;
-        right = filtered_lp * 0.5f;
+        // Left channel: bass subharmonics
+        float channel2_left = (0.4f * channel2_sub1_out + 0.3f * channel2_sub2_out + 0.2f * channel2_sub3_out + 0.1f * channel2_sub4_out) * bass_volume;
+        // Right channel: bass_osc
+        float channel2_right = channel2_main_out * bass_volume;
+
+        float max_val = std::max({channel1_left, channel1_right, channel2_left, channel2_right});
+        if (max_val > 1.0f)
+        {
+            channel1_left /= max_val;
+            channel1_right /= max_val;
+            channel2_left /= max_val;
+            channel2_right /= max_val;
+        }
 
         // Write final audio
-        out[0][i] = left;
-        out[1][i] = right;
-        out[2][i] = 0.f;
-        out[3][i] = 0.f;
-
-        // --- Store LEFT channel in scope_buffer for time-domain display ---
-        scope_buffer[scope_idx] = left; // in [-1..+1] range
-        scope_idx = (scope_idx + 1) % SCOPE_BUF_SIZE;
+        out[0][i] = channel1_left;
+        out[1][i] = channel1_right;
+        out[2][i] = channel2_left;
+        out[3][i] = channel2_right;
     }
+}
+
+// -------------------------------------------------
+// Initialize an oscillator
+// -------------------------------------------------
+void InitOscillator(Oscillator &osc, float amp, float samplerate)
+{
+    osc.Init(samplerate);
+    osc.SetAmp(amp);
 }
 
 // -------------------------------------------------
@@ -279,22 +296,17 @@ int main(void)
     // Init oscillators
     waveform = 0;
 
-    main_oscillator.Init(samplerate);
-    osc_sub1.Init(samplerate);
-    osc_sub2.Init(samplerate);
-    osc_sub3.Init(samplerate);
-    osc_sub4.Init(samplerate);
+    InitOscillator(main_oscillator, 0.8f, samplerate);
+    InitOscillator(osc_sub1, 0.8f, samplerate);
+    InitOscillator(osc_sub2, 0.8f, samplerate);
+    InitOscillator(osc_sub3, 0.8f, samplerate);
+    InitOscillator(osc_sub4, 0.8f, samplerate);
 
-    main_oscillator.SetAmp(0.8f);
-    osc_sub1.SetAmp(0.8f);
-    osc_sub2.SetAmp(0.8f);
-    osc_sub3.SetAmp(0.8f);
-    osc_sub4.SetAmp(0.8f);
-
-    // Init filter
-    formant_filter.Init(samplerate);
-    formant_filter.SetFreq(filter_freq);
-    formant_filter.SetRes(0.5f);
+    InitOscillator(bass_oscillator, 0.8f, samplerate);
+    InitOscillator(bosc_sub1, 0.8f, samplerate);
+    InitOscillator(bosc_sub2, 0.8f, samplerate);
+    InitOscillator(bosc_sub3, 0.8f, samplerate);
+    InitOscillator(bosc_sub4, 0.8f, samplerate);
 
     // Start ADC and Audio
     patch.StartAdc();
