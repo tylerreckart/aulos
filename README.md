@@ -1,5 +1,5 @@
 # Aulos
-<img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Banquet_Euaion_Louvre_G467_n2_cropped.jpg" alt="Image depicting an Aulos (double reedpipes or double clarinets), from Attic red-figure cup, Banquet Euaion Louvre" width="320px"/>
+<img src="./.github/export.png" alt="Image depicting an Aulos (double reedpipes or double clarinets), from Attic red-figure cup, Banquet Euaion Louvre" width="320px"/>
 
 ## Demo
 
