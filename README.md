@@ -1,5 +1,5 @@
 # Aulos
-<img src="./.github/export.png" alt="Image depicting an Aulos (double reedpipes or double clarinets), from Attic red-figure cup, Banquet Euaion Louvre" width="320px"/>
+<img src="./.github/export.png" alt="Image depicting the design of the front panel of the eurorack module" />
 
 ## Demo
 
