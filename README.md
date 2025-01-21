@@ -1,5 +1,5 @@
 # Aulos
-<img src="./.github/export.png" alt="Image depicting the design of the front panel of the eurorack module" />
+<img src="./.github/panel.png" alt="Image depicting the design of the front panel of the eurorack module" />
 
 ## Demo
 
