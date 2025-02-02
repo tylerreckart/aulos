@@ -4,7 +4,7 @@ TARGET = trautonium
 USE_DAISYSP_LGPL=1
 
 # Sources
-CPP_SOURCES = trautonium.cpp
+CPP_SOURCES = $(wildcard src/*.cpp)
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy
