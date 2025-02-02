@@ -25,61 +25,13 @@
 //
 // See http://creativecommons.org/licenses/MIT/ for more information.
 // ----------------------------------------------------------------------------
-#pragma once
+#include "daisysp.h"
 
-#include <vector>
+using namespace daisysp;
 
-// -------------------------------------------------
-// BiquadFilter
-// -------------------------------------------------
-class BiquadFilter
-{
-  public:
-    BiquadFilter();
-    void Reset();
-    void SetBandPass(float sr, float centerFreq, float bandwidth);
-    float Process(float x);
+// ADSR envelopes
+extern daisysp::Adsr osc1_env;
+extern daisysp::Adsr osc2_env;
 
-  private:
-    float b0_, b1_, b2_;
-    float a1_, a2_;
-    float z1_, z2_;
-    void Normalize();
-};
-
-// -------------------------------------------------
-// FormantFilter
-// -------------------------------------------------
-class FormantFilter
-{
-  public:
-    FormantFilter(size_t numFormants = 3);
-    void Init(float sr);
-    void SetFreq(float f);
-    void SetBandwidth(float bw);
-    void SetAmp(float a);
-    void SetResonance(float r);
-    float Process(float x);
-
-  private:
-    float samplerate_;
-    float amp_;
-    float resonance_;
-    std::vector<BiquadFilter> filters_;
-    std::vector<float> freq_;
-    std::vector<float> bw_;
-    void UpdateFilters();
-};
-
-extern FormantFilter osc1_formant_filter;
-extern FormantFilter osc2_formant_filter;
-
-extern float osc1_formant_freq;
-extern float osc1_formant_bw;
-extern float osc1_formant_amp;
-extern float osc1_formant_resonance;
-
-extern float osc2_formant_freq;
-extern float osc2_formant_bw;
-extern float osc2_formant_amp;
-extern float osc2_formant_resonance;
+extern float osc1_envelope_shape;
+extern float osc2_envelope_shape;

@@ -35,9 +35,16 @@ static constexpr int TOTAL_OSCS = 1 + NUM_SUBS;
 extern daisysp::Oscillator osc1_sine[TOTAL_OSCS];
 extern daisysp::Oscillator osc1_saw[TOTAL_OSCS];
 
-extern int   osc1_root_note;  // default MIDI note
+extern daisysp::Oscillator osc2_sine[TOTAL_OSCS];
+extern daisysp::Oscillator osc2_square[TOTAL_OSCS];
+
+extern float osc1_root_freq;  // default freq
 extern float osc1_morph;      // crossfade 0..1
 extern float osc1_volume;     // overall volume
+
+extern float osc2_root_freq;  // default freq
+extern float osc2_morph;      // crossfade 0..1
+extern float osc2_volume;     // overall volume
 
 void InitOscillatorArrays(float sr);
 

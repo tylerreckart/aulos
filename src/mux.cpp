@@ -38,7 +38,7 @@ const Pin MUX_S1 = seed::D3;
 const Pin MUX_S2 = seed::D4;
 const Pin MUX_S3 = seed::D5;
 
-const Pin MUX1_ADC = seed::A0; // Pots
+const Pin MUX1_ADC = seed::A0; // pots
 const Pin MUX2_ADC = seed::A1; // CV
 
 void InitMultiplexerPins()

@@ -36,5 +36,3 @@ extern float cv_values[NUM_CV];
 extern const float SMOOTHING_FACTOR;
 
 void UpdateControls(daisy::DaisySeed &hw);
-
-float MidiToFreq(int midinote);

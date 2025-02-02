@@ -35,11 +35,9 @@ extern const daisy::Pin MUX_S1;
 extern const daisy::Pin MUX_S2;
 extern const daisy::Pin MUX_S3;
 
-extern const daisy::Pin MUX1_ADC; // Pots
+extern const daisy::Pin MUX1_ADC; // pots
 extern const daisy::Pin MUX2_ADC; // CV
 
-// Function to initialize the multiplexer pins
 void InitMultiplexerPins();
 
-// Function to read multiplexer channels
 void ReadMultiplexers(daisy::DaisySeed &hw);

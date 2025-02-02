@@ -25,22 +25,30 @@
 //
 // See http://creativecommons.org/licenses/MIT/ for more information.
 // ----------------------------------------------------------------------------
+#include "daisysp.h"
 #include "osc.h"
-#include <cstdlib>  // rand()
-#include <cmath>    // M_PI
+#include "env.h"
+#include <cmath>
 
 daisysp::Oscillator osc1_sine[TOTAL_OSCS];
 daisysp::Oscillator osc1_saw[TOTAL_OSCS];
 
-int   osc1_root_note = 60;
-float osc1_morph     = 0.0f;
-float osc1_volume    = 0.8f;
+daisysp::Oscillator osc2_sine[TOTAL_OSCS];
+daisysp::Oscillator osc2_square[TOTAL_OSCS];
+
+float osc1_root_freq = 440.0f;    // root frequency
+float osc1_morph     = 0.0f;      // 0 = sine, 1 = saw
+float osc1_volume    = 0.8f;      // 0 - 1
+
+float osc2_root_freq = 440.0f;    // root freq
+float osc2_morph     = 0.0f;      // 0 = sine, 1 = saw
+float osc2_volume    = 0.8f;      // 0 - 1
 
 void InitOscillator(daisysp::Oscillator &osc, float samplerate, uint8_t wave)
 {
     osc.Init(samplerate);
     osc.SetAmp(0.5f);
-    osc.SetWaveform(wave); // e.g., Oscillator::WAVE_SIN
+    osc.SetWaveform(wave);
     float random_phase = static_cast<float>(rand()) / RAND_MAX;
     osc.PhaseAdd(random_phase * 2.0f * M_PI);
 }
@@ -52,5 +60,22 @@ void InitOscillatorArrays(float sr)
     {
         InitOscillator(osc1_sine[i], sr, Oscillator::WAVE_SIN);
         InitOscillator(osc1_saw[i],  sr, Oscillator::WAVE_SAW);
+        InitOscillator(osc2_sine[i], sr, Oscillator::WAVE_SIN);
+        InitOscillator(osc2_square[i],  sr, Oscillator::WAVE_SQUARE);
+    }
+}
+
+void UpdateOscillatorFrequencies()
+{
+    for(int i = 0; i < TOTAL_OSCS; i++)
+    {
+        // osc1
+        float osc1_freq = (i == 0) ? osc1_root_freq : (osc1_root_freq / (i + 1));
+        osc1_sine[i].SetFreq(osc1_freq);
+        osc1_saw[i].SetFreq(osc1_freq);
+        // osc2
+        float osc2_freq = (i == 0) ? osc1_root_freq : (osc1_root_freq / (i + 1));
+        osc2_sine[i].SetFreq(osc2_freq);
+        osc2_square[i].SetFreq(osc2_freq);
     }
 }

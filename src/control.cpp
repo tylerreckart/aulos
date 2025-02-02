@@ -29,6 +29,7 @@
 #include "mux.h"
 #include "filter.h"
 #include "osc.h"
+#include "env.h"
 
 #include <cmath>
 
@@ -37,59 +38,92 @@ float cv_values[NUM_CV]    = {0};
 
 const float SMOOTHING_FACTOR = 0.1f;
 
-float MidiToFreq(int midinote)
-{
-    return 440.f * powf(2.f, (midinote - 69) / 12.f);
-}
+float osc1_envelope_shape = 0.5f; // Envelope shape (0 to 1)
+float osc2_envelope_shape = 0.5f; // Envelope shape (0 to 1)
 
 void UpdateControls(daisy::DaisySeed &hw)
 {
-    // 1) Read from multiplexers into pot_values[], cv_values[]
+    // Read from multiplexers into pot_values[], cv_values[]
     ReadMultiplexers(hw);
 
-    // 2) Map pots to parameters
-    // Pot 0 -> MIDI note
-    // Pot 1 -> morph
-    // Pot 2 -> formant freq
-    // Pot 3 -> formant BW
-    // Pot 4 -> formant resonance
-    float k0 = pot_values[0];
-    float k1 = pot_values[1];
-    float k2 = pot_values[2];
-    float k3 = pot_values[3];
-    float k4 = pot_values[4];
+    // osc1
+    float k0 = pot_values[0]; // Root frequency
+    float k1 = pot_values[1]; // Morph
+    float k2 = pot_values[2]; // Formant frequency
+    float k3 = pot_values[3]; // Formant bandwidth
+    float k4 = pot_values[4]; // Formant resonance
+    float k5 = pot_values[5]; // Envelope
+    // osc2
+    float k6 = pot_values[0]; // Root frequency
+    float k7 = pot_values[1]; // Morph
+    float k8 = pot_values[2]; // Formant frequency
+    float k9 = pot_values[3]; // Formant bandwidth
+    float k10 = pot_values[4]; // Formant resonance
+    float k11 = pot_values[5]; // Envelope
 
-    // k0 -> MIDI note [0..127]
-    osc1_root_note = static_cast<int>(k0 * 127.f);
-    if(osc1_root_note < 0)   osc1_root_note = 0;
-    if(osc1_root_note > 127) osc1_root_note = 127;
+    // Root frequency in Hz (20Hz - 5000Hz)
+    {
+        float minF = 20.f;
+        float maxF = 5000.f;
+        // osc1
+        osc1_root_freq = minF + (maxF - minF) * k0;
+        // osc2
+        osc2_root_freq = minF + (maxF - minF) * k6;
+    }
 
-    // k1 -> morph [0..1]
-    osc1_morph = k1;
-    if(osc1_morph < 0.f) osc1_morph = 0.f;
-    if(osc1_morph > 1.f) osc1_morph = 1.f;
+    // Morph (0 to 1)
+    {
+        // osc1
+        osc1_morph = k1;
+        osc1_morph = fmaxf(0.f, fminf(osc1_morph, 1.f));
+        // osc2
+        osc2_morph = k7;
+        osc2_morph = fmaxf(0.f, fminf(osc2_morph, 1.f));
+    }
 
-    // k2 -> formant frequency (100..5000)
+    // Formant Frequency (100Hz - 5000Hz)
     {
         float minF = 100.f;
         float maxF = 5000.f;
-        formant_freq = minF + (maxF - minF) * k2;
-        formant_filter.SetFreq(formant_freq);
+        // osc1
+        osc1_formant_freq = minF + (maxF - minF) * k2;
+        osc1_formant_filter.SetFreq(osc1_formant_freq);
+        // osc2
+        osc2_formant_freq = minF + (maxF - minF) * k8;
+        osc2_formant_filter.SetFreq(osc2_formant_freq);
     }
 
-    // k3 -> formant bandwidth (50..1000)
+    // Formant Bandwidth (50Hz - 1000Hz)
     {
         float minBW = 50.f;
         float maxBW = 1000.f;
-        formant_bw = minBW + (maxBW - minBW) * k3;
-        formant_filter.SetBandwidth(formant_bw);
+        // osc1
+        osc1_formant_bw = minBW + (maxBW - minBW) * k3;
+        osc1_formant_filter.SetBandwidth(osc1_formant_bw);
+        // osc2
+        osc2_formant_bw = minBW + (maxBW - minBW) * k9;
+        osc2_formant_filter.SetBandwidth(osc2_formant_bw);
     }
 
-    // k4 -> resonance factor [1..10]
+    // Resonance Factor (1.0 - 10.0)
     {
         float minR = 1.0f;
         float maxR = 10.0f;
-        formant_resonance = minR + (maxR - minR) * k4;
-        formant_filter.SetResonance(formant_resonance);
+        // osc1
+        osc1_formant_resonance = minR + (maxR - minR) * k4;
+        osc1_formant_filter.SetResonance(osc1_formant_resonance);
+        // osc2
+        osc2_formant_resonance = minR + (maxR - minR) * k10;
+        osc2_formant_filter.SetResonance(osc2_formant_resonance);
+    }
+
+    // Envelope Shape (0 to 1)
+    {
+        // osc1
+        osc1_envelope_shape = k5;
+        osc1_envelope_shape = fmaxf(0.f, fminf(osc1_envelope_shape, 1.f));
+        // osc2
+        osc2_envelope_shape = k11;
+        osc2_envelope_shape = fmaxf(0.f, fminf(osc2_envelope_shape, 1.f));
     }
 }
