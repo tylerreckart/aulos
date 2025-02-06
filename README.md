@@ -1,5 +1,5 @@
 # Aulos
-<img src="./.github/panel.png" alt="Image depicting the design of the front panel of the eurorack module" />
+<img src="./.github/aulos_panel-big.png" alt="Image depicting the design of the front panel of the eurorack module" />
 
 ## Demo
 
@@ -10,14 +10,6 @@ Please click the thumbnail below to be directed to the video demonstration of th
 ## Overview
 
 This repository contains the firmware and source code for a modern recreation of the Trautonium, an early electronic musical instrument known for its expressive control and subharmonic character. The project is named _Aulos_ after the ancient Greek double-piped wind instrument, celebrated for its rich, expressive tones and cultural significance in early music. This name reflects the project's aim to recreate an instrument with similar expressive capabilities. The firmware, written in C++, is designed for the DaisyDSP microcontroller and Arduino platforms. The .bin file is a precompiled firmware binary ready for flashing onto a supported device.
-
-## Features
-
-- **Two independent oscillators** (Osc1 and Osc2), each with **four subharmonic voices**.  
-- **Multiple waveforms** (Sine, Triangle, Saw, Ramp, Square) selectable independently for each oscillator.  
-- **Scale-based quantization** with selectable scales (Major, Minor, Pentatonic, etc.).  
-- **Configurable root note** for each oscillator via dedicated knobs.  
-- **Volume control** for each oscillator and its subharmonics.  
 
 ## Dependencies
 
@@ -69,25 +61,7 @@ make program-dfu
 
 ## Usage
 
-Once installed, the Aulos firmware boots immediately into audio generation mode. The subharmonic oscillators are layered over two main oscillators. Control is offered via the four knobs and the rotary encoder.
-
-## Controls
-- **Knob 1**: Root note (0–127 MIDI) for Oscillator 1.
-- **Knob 2**: Volume for Oscillator 1.
-- **Knob 3**: Root note (0–127 MIDI) for Oscillator 2.
-- **Knob 4**: Volume for Oscillator 2.
-
-Rotary Encoder Button: Cycles through encoder modes:
-
-- **WAVEFORM_1**: Change waveform for Oscillator 1.
-- **WAVEFORM_2**: Change waveform for Oscillator 2.
-- **SCALE**: Change the active scale.
-- **QUANTIZE**: Toggle quantization on/off.
-
-Rotary Encoder Rotation:
-- In **WAVEFORM_1** or **WAVEFORM_2** mode, rotating changes the waveform index.
-- In **SCALE** mode, rotating cycles through available scales.
-- In **QUANTIZE** mode, any rotation toggles quantization.
+Once installed, the Aulos firmware boots immediately into audio generation mode. The subharmonic oscillators are layered over two main oscillators.
 
 ## License
 This project is licensed under the MIT License. You are free to use, modify, and distribute this software in accordance with the terms of the MIT License. See the LICENSE file for more details.
